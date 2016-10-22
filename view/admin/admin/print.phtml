@@ -1,0 +1,11 @@
+<table class="designacao">
+    <tr><th colspan="4" class="title">PRINT LISTA DE DADOS</th></tr>
+    <?php if($this->data):?>
+        <tr><th>CODIGO</th><th>TITULO</th><th>DATA</th><th>DESCRIÇÃO</th></tr>
+    <?php foreach($this->data->toArray() as $ar):?>
+    <tr><th width="10%"><?=str_pad($ar['id'],5,'0',STR_PAD_LEFT);?></th><td width="30%"><?=$ar['title'];?></td><td width="10%"><?=$ar['created'];?></td><td><?=$ar['description'];?></td></tr>
+        <?php endforeach;?>
+    <?php else: ?>
+        <tr><td colspan="3"><h1>Não Designações para impressão!</h1></td></tr>
+    <?php endif;?>
+</table>

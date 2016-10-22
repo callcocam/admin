@@ -1,0 +1,116 @@
+    <?php
+    if($this->data)
+    {
+        $block=$partial=$this->partial("/partial/tpl/block");
+        $partial=$this->TplListaHelper()->gerarTpllistar($this->route,$this->controller,$this->config->module,$block);
+        $c=0;
+        $html=[];
+       foreach($data as $o):
+           if(is_object($o)){
+               $o=$o->toArray();
+           }
+                $o['rota-editar']=$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>'update','id'=>$o['id']]);
+                $o['rota-excluir']=$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>'delete','id'=>$o['id']]);
+                $o['rota-createnew-module']=$this->url("make/default",['controller'=>'make','action'=>'createnew','id'=>$o['id']]);
+                $o['rota-search']=$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>'search-item','id'=>$o['id']]);
+                $o['description'] = \Base\Model\Check::Words($o['description'], 30);
+               if (array_key_exists("images", $o)) {
+                       $images = $o['images'];
+                       $root = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
+                       $info = new \SplFileInfo(sprintf("%s/dist/%s",$root,$images));
+                       if(\Base\Model\Check::isFileHidden($info)){
+                           $o['images'] = $this->Html("img")->setAttributes(array(
+                               'alt' => \Base\Model\Check::Words($o['title'], 5),
+                               'title' =>  \Base\Model\Check::Words($o['title'], 20),
+                               'class'=>'pull-left width-3 materialboxed',
+                               'width'=>'250',
+                               //'style' => 'width: 100%; display: block;',
+                              // 'src' => sprintf("/dist/%s",$images)
+                              'src' => "/dist/tim.php?src=/dist/{$images}",
+                           ));
+                       }
+                       else{
+                           $o['images'] = $this->Html("img")->setAttributes(array(
+                               'alt' =>"",
+                               'title' =>  "No Imagens",
+                               'class'=>'pull-left width-3',
+                               //'style' => 'width: 100%; display: block;',
+                               // 'src' => sprintf("/dist/%s",$images)
+                               'src' => "/dist/tim.php?src=/dist/no_image.jpg"
+                           ));
+                       }
+
+               }
+           else{
+               $o['images'] = $this->Html("img")->setAttributes(array(
+                   'alt' =>"",
+                   'title' =>  "No Imagens",
+                   'class'=>'pull-left width-3',
+                   //'style' => 'width: 100%; display: block;',
+                   // 'src' => sprintf("/dist/%s",$images)
+                   'src' => "/dist/tim.php?src=/dist/no_image.jpg"
+               ));
+           }
+               $o['title'] = \Base\Model\Check::Words($o['title'], 5);
+               $implode = "#" . implode("#&#", array_keys($o)) . "#";
+               $o['state']=(int)$o['state']?"ARQUIVADO/DESPUBLICADO":"ATIVO/PUBLICADO";
+               $keys = explode("&", $implode);
+               $c++;
+               if($c>$this->colunas){
+                   $c=1;
+                   $row[] =implode("", $html);
+                   $html=[];
+               }
+               $html[] = str_replace(array_values($keys), array_values($o), $partial);
+
+           endforeach;
+           if ($html) {
+               $row[] =implode("", $html);
+           }
+            $defaul=$partial=$this->partial("/partial/tpl/index");
+            $btn_add=$this->Html('a')->setAttributes(['class'=>'btn ink-reaction btn-raised btn-primary pull-right','href'=>$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>'create'])])->setText("CADASTRAR NOVO");
+            $tpl['#add#']=$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>'create']);
+            $tpl['#busca#']=$this->Search()->search_basic($this->filtro,$btn_add);
+            $tpl['#message#']=$this->messages();
+            $tpl['#btn-print#']=$this->Html('a')->setAttributes(['class'=>'btn ink-reaction btn-floating-action btn-lg btn-warning','onclick'=>"window.materialadmin.AppPrint._printItemMelhorMinisterio('".$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>$this->action_print])."')"])->setText($this->fontAwesome('fa fa-print'));
+            $tpl['#count#']=$this->paginationControl(
+              // the paginator object
+                  $this->data,
+                  // the scrolling style
+                  'sliding',
+                  // the partial to use to render the control
+                  'partial/totalcount.phtml'
+              );
+            $tpl['#paginator#']=$this->paginationControl(
+            // the paginator object
+                $this->data,
+                // the scrolling style
+                'sliding',
+                // the partial to use to render the control
+                'partial/paginator.phtml',
+                // the route to link to when a user clicks a control link
+                array(
+                    'route' => "{$this->route}/default",
+                    'controller' => $this->controller,
+                    'action' => 'index',
+                    'id' => "0",
+                    'page' => $this->page,
+                )
+            );
+            $tpl['#blocks#']=implode("", $row);
+           if ($row) {
+               echo str_replace(array_keys($tpl), array_values($tpl), $defaul);
+           }
+
+    }
+    else{
+        $defaul=$partial=$this->partial("/partial/tpl/index");
+        $btn_add=$this->Html('a')->setAttributes(['class'=>'btn btn-success pull-right','href'=>$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>'create'])])->setText("CADASTRAR NOVO");
+        $tpl['#blocks#']="NENHUM RESULTADO FOI ENCOTRADO";
+        $tpl['#busca#']=$this->Search()->search_basic($this->filtro,$btn_add);
+        $tpl['#add#']=$this->url("{$this->route}/default",['controller'=>$this->controller,'action'=>'create']);
+        $tpl['#count#']="0";
+        $tpl['#paginator#']="";
+        $tpl['#btn-print#']="";
+        echo str_replace(array_keys($tpl), array_values($tpl), $defaul);;
+    }

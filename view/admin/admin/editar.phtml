@@ -1,0 +1,6 @@
+<?php
+$this->MakeForm()->gerar($form);
+$partial=$this->TplListaHelper()->gerarTpleditar($this->route,$this->controller,$this->config->module,$this->tplEditar,$form);
+$defaults = str_replace(array_keys($this->MakeForm()->getFields()), array_values($this->MakeForm()->getFields()), $partial);
+$html=str_replace(["#comando#",'#compose#'], [implode(PHP_EOL,$this->MakeForm()->getBtn()),$this->translate('Compose')], $defaults);
+echo str_replace(array_keys($this->MakeForm()->getLabes()), array_values($this->MakeForm()->getLabes()), $html);
